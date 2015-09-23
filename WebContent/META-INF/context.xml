@@ -1,0 +1,10 @@
+<Context>
+	<Resource name="jdbc/MyDataSource" auth="Container" type="javax.sql.DataSource"
+		maxActive="10" maxIdle="3" maxWait="10000" username="scott" password="TIGER"
+		driverClassName="oracle.jdbc.OracleDriver" url="jdbc:oracle:thin:@192.168.8.19:1521:xe" />
+</Context>
+
+<!-- Context initCtx = new IntialContext();
+DataSource ds = (DataSource) initCtx.lookup("java:comp/env/jdbc/MyDataSource");//data source는 커넥션 풀에서 커넥션을 가져다줄수있다
+System.print.out("DS :"+ds.toString());
+Connection conn = ds.getConnection(); -->
