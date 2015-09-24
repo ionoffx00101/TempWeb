@@ -41,14 +41,14 @@
 <body>
 <form id="uploadForm" action="Board?cmd=lnkpostWrite" method="post" enctype="multipart/form-data">
    <!-- <input type="hidden" name="cmd" value="lnkpostWrite"> -->
-   제목 : <input type="text" name="title"><br>
+   제목 : <input type="text" name="title" required="required"><br>
    글쓴이 : <input type="text" name="author"><br>
    내용 : <textarea rows="3" cols="50" placeholder="이곳에 입력" name="content"></textarea><br>
      파일 : <input type="file" name="file"><br>
      
      <input type="submit" value="등록"><br>
-   
-</form>
+</form><br>
+<a href="Board?cmd=list"><button>목록보기</button></a>
 
 </body>
 </html>

@@ -11,7 +11,8 @@ public class BoardVO {
 	private int hits;
 	private int ref;
 	private int attnum;
-	private String filename;
+	private String filename;//
+	private int page;
 	
 	public int getNum() {
 		return num;
@@ -66,6 +67,12 @@ public class BoardVO {
 	}
 	public void setFilename(String filename) {
 		this.filename = filename;
+	}
+	public int getPage() {
+		return page;
+	}
+	public void setPage(int page) {
+		this.page = page;
 	}
 	
 	

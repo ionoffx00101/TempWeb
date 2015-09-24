@@ -1,14 +1,16 @@
 <%@page import="java.util.*"%>
 <%@page import="Board.*"%>
 <%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <!-- core를 c란 이름으로 쓰겠다 -->
 <!DOCTYPE html>
 <html>
 <head>
 <title>리스트</title>
 <%
 	List<BoardVO> list = (List<BoardVO>) request.getAttribute("postlist");
+NavigationVO nvo = (NavigationVO) request.getAttribute("nvo");
 %>
-
+<c:set var="list" value="<%=list%>" scope="page"></c:set>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -50,16 +52,40 @@ td{background-color: #dddddd; padding: 10px;}
 	히트수
 	</td>
 	<td>
-	파일넘버(현재 구현 X)
+	파일이름
 	</td>
 	</tr>
 	
-	<%
+	<c:forEach var="vo" items="${list}" begin="0" end="<%=list.size()%>" step="1" varStatus="status">
+	<tr>
+	<td>
+	${vo.num} 
+	</td>
+	<td>
+	<a href="Board?cmd=readpost&postnum=${vo.num}">${vo.title}</a>
+	</td>
+	<td>
+	${vo.author} 
+	</td>
+	<td>
+	${vo.wdate} 
+	</td>
+	<td>
+	${vo.hits} 
+	</td>
+	<td>
+	${vo.filename} 
+	</td>
+	</tr>
+</c:forEach>
+	
+	<%-- <%
 	for(int i=0;i<list.size();i++){
 	BoardVO vo = list.get(i);
 	%>
 	<tr>
 	<td>
+	
 	<%=vo.getNum()%> 
 	</td>
 	<td>
@@ -75,17 +101,54 @@ td{background-color: #dddddd; padding: 10px;}
 	<%=vo.getHits()%> 
 	</td>
 	<td>
+	 <%if(vo.getFilename()==null){ %>
+	파일 없음
+	<% }else {%>
 	<%=vo.getFilename() %>
-	<%-- <%if(vo.getAttnum()==0){ %>
+	<% }%> 
+	</td>
+	</tr>
+	<%if(vo.getAttnum()==0){ %>
 	파일 없음
 	<% }else {%>
 	<%=vo.getAttnum()%> 
-	<% }%> --%>
-	</td>
-	</tr>
+	<% }%>
 	<% 	
 	}
-	%>
+	%> --%>
 	</table>
+	<br>
+	<%
+		int[] nums = nvo.getLinks();
+		if (nvo.isLeftMore()) {
+	%>
+	<!-- 왼쪽 이동 링크 -->
+	<a href="Board?cmd=list&page=<%=nums[0] - 1%>"><img src="images/monotone_arrow_left_small.png"  width='30' ></a>
+	<%
+		}
+
+		for (int i = 0; i < nums.length; i++) { // 네비게이션 링크
+			int num = nums[i];
+			if (nvo.getCurrPage() == num) {
+	%>
+	[
+	<span style='color: red; font-size: 1.5em;'><%=num%></span>]
+	<%
+		} else {
+	%>
+	[
+	<a href="Board?cmd=list&page=<%=num%>"><%=num%></a>]
+	<%
+		}
+		}
+
+		if (nvo.isRightMore()) {
+	%>
+	<!-- 오른쪽 이동 링크 -->
+	<a href="Board?cmd=list&page=<%=nums[nums.length - 1] + 1%>"><img src="Board/images/monotone_arrow_right.png" width='30' ></a>
+	<%
+		}
+	%>
+	
 </body>
 </html>

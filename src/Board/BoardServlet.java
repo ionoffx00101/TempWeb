@@ -19,7 +19,7 @@ public class BoardServlet extends HttpServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("utf-8");
 		String cmd = request.getParameter("cmd");
-		BoardService svc = new BoardService(request);
+		BoardService svc = new BoardService(request,response);
 		String viewPath = null;
 		if(cmd==null || cmd.equals("")) cmd = "list";
 		try {
