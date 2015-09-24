@@ -12,7 +12,7 @@
 <fmt:requestEncoding value="utf-8"/><!--  자바코드가 아닌 코어태그로 인코딩을 처리함 -->
 <% /* 업로드 html에서 폼을 받으면 이곳이 실행이된다  request.get..으로 파일은 받을 수 없다*/
 request.setCharacterEncoding("utf-8");
-BoardService svc = new BoardService(request);
+BoardService svc = new BoardService(request,response);
 BoardVO vo = new BoardVO();
 AttachedVO avo = new AttachedVO();
 

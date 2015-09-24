@@ -88,7 +88,7 @@ public class BoardDAO extends AbstractDAO {
 
 	public List<BoardVO> getPageBoard(int page) {
 		conn = getConn();
-		String sql = "SELECT * FROM ( SELECT t1.*, TRUNC((ROWNUM-1)/5)+1 page FROM ( SELECT num,LPAD(' ', (LEVEL-1)*4,'¡¡') || DECODE(LEVEL,1,'','¦Æ ')||title as title,contents,wdate,author,hits,REF,ATTNUM,Filename FROM board START WITH ref='0' CONNECT BY PRIOR Num=Ref order siblings by num DESC) t1) WHERE page=?";
+		String sql = "SELECT * FROM ( SELECT t1.*, TRUNC((ROWNUM-1)/10)+1 page FROM ( SELECT num,LPAD(' ', (LEVEL-1)*4,'¡¡') || DECODE(LEVEL,1,'','¦Æ ')||title as title,contents,wdate,author,hits,REF,ATTNUM,Filename FROM board START WITH ref='0' CONNECT BY PRIOR Num=Ref order siblings by num DESC) t1) WHERE page=?";
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, page);

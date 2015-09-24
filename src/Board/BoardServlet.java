@@ -25,6 +25,7 @@ public class BoardServlet extends HttpServlet {
 		try {
 			Method method = svc.getClass().getMethod(cmd);
 			viewPath = (String) method.invoke(svc);
+			if(viewPath!=null)
 			request.getRequestDispatcher(viewPath).forward(request, response);
 		} catch (Exception e) {
 			e.printStackTrace();

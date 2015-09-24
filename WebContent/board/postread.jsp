@@ -1,11 +1,11 @@
-<%@ page contentType="text/html; charset=EUC-KR" pageEncoding="EUC-KR"%>
+<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ page import="Board.*"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <!-- core¸¦ c¶õ ÀÌ¸§À¸·Î ¾²°Ú´Ù -->
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> <!-- coreë¥¼ cëž€ ì´ë¦„ìœ¼ë¡œ ì“°ê² ë‹¤ -->
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=EUC-KR">
-<title>±Û »ó¼¼º¸±â</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>ê¸€ ìƒì„¸ë³´ê¸°</title>
 <%
 	BoardVO vo = (BoardVO) request.getAttribute("selectpost");
 %>
@@ -14,34 +14,35 @@
 <body>
 <table>
 <tr>
-<td>Á¦¸ñ
+<td>ì œëª©
 </td>
 <td>
 <input type="text" readonly value="${vo.title}"> 
 </td>
 </tr>
 <tr>
-<td>ÀÛ¼ºÀÚ
+<td>ìž‘ì„±ìž
 </td>
 <td>
 <input type="text" readonly value="${vo.author}"> 
 </td>
 </tr>
 <tr>
-<td>³»¿ë
+<td>ë‚´ìš©
 </td>
 <td>
 <textarea rows="5" cols="30" readonly="readonly" >${vo.contents}</textarea>
 </td>
 </tr>
 <tr>
-<td>Ã·ºÎÆÄÀÏ
+<td>ì²¨ë¶€íŒŒì¼
 </td>
 <td>
-<a href="Board?cmd=filedownload&postnum=${vo.num}&filenum=${vo.attnum}">${vo.filename}</a>
+${vo.filename} <%if(vo.getFilename()!=null){ %><a href="Board?cmd=filedownload&postnum=${vo.num}&filenum=${vo.attnum}"><button>ë‹¤ìš´</button></a><%} %>
 </td>
 </tr>
 </table><br>
-<a href="Board?cmd=list"><button>¸ñ·Ïº¸±â</button></a>
+<a href="Board?cmd=lnkrePostWrite&postnum=${vo.num}&posttitle=${vo.title}"><button>ë‹µê¸€ë‹¬ê¸°</button></a>
+<a href="Board?cmd=list"><button>ëª©ë¡ë³´ê¸°</button></a>
 </body>
 </html>

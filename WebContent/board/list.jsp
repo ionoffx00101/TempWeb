@@ -17,6 +17,27 @@ NavigationVO nvo = (NavigationVO) request.getAttribute("nvo");
 		$("button[class=btn_go_inputForm]").click(function() {
 			location.href="Board?cmd=inputForm";
 		});
+		$('button[class=btn_Remove]').on('click',function(){
+			var idx = $(this).attr('data-idx');
+			$.ajax({
+				type:'post',
+				url:"Board?cmd=lnkpostListRemove",
+				dataType:'json',
+				data:{'idx':idx},
+				success:function(res){
+					if(res.remove){
+						alert("ㅇㅋ");
+					location.href="Board?cmd=list";
+					}
+					else{
+						alert("에러 갔다오고");
+					}
+				},
+				error:function(err){
+					alert("에러");
+				}
+			});
+		});
 	});
 </script>
 <style type="text/css">
@@ -29,6 +50,13 @@ table {
 	border: 1px solid aqua;
 }
 td{background-color: #dddddd; padding: 10px;}
+
+a:link {text-decoration: none; color: #333333;}
+a:visited {text-decoration: none; color: #333333;}
+a:active {text-decoration: none; color: #333333;}
+a:hover {text-decoration: none; color: blue;}
+img {vertical-align: middle;}
+.lefttd{text-align: left;width: 500px; }
 </style>
 </head>
 <body>
@@ -54,6 +82,12 @@ td{background-color: #dddddd; padding: 10px;}
 	<td>
 	파일이름
 	</td>
+	<td>
+	수정
+	</td>
+	<td>
+	삭제
+	</td>
 	</tr>
 	
 	<c:forEach var="vo" items="${list}" begin="0" end="<%=list.size()%>" step="1" varStatus="status">
@@ -61,7 +95,7 @@ td{background-color: #dddddd; padding: 10px;}
 	<td>
 	${vo.num} 
 	</td>
-	<td>
+	<td class="lefttd">
 	<a href="Board?cmd=readpost&postnum=${vo.num}">${vo.title}</a>
 	</td>
 	<td>
@@ -75,6 +109,12 @@ td{background-color: #dddddd; padding: 10px;}
 	</td>
 	<td>
 	${vo.filename} 
+	</td>
+	<td>
+	<button type ="button" class="btn_Update" data-idx="${status.index}">수정</button>
+	</td>
+	<td>
+	<button class="btn_Remove" data-idx="${status.index}">삭제</button>
 	</td>
 	</tr>
 </c:forEach>
@@ -118,6 +158,7 @@ td{background-color: #dddddd; padding: 10px;}
 	%> --%>
 	</table>
 	<br>
+	
 	<%
 		int[] nums = nvo.getLinks();
 		if (nvo.isLeftMore()) {
@@ -145,7 +186,7 @@ td{background-color: #dddddd; padding: 10px;}
 		if (nvo.isRightMore()) {
 	%>
 	<!-- 오른쪽 이동 링크 -->
-	<a href="Board?cmd=list&page=<%=nums[nums.length - 1] + 1%>"><img src="Board/images/monotone_arrow_right.png" width='30' ></a>
+	<a href="Board?cmd=list&page=<%=nums[nums.length - 1] + 1%>"><img src="images/monotone_arrow_right.png" width='30' ></a>
 	<%
 		}
 	%>

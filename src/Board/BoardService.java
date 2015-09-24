@@ -2,7 +2,6 @@ package Board;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
@@ -17,7 +16,7 @@ public class BoardService {
 	private boolean leftMore;
 	private boolean rightMore;
 	private int pg = 1;
-	private static int rowsPerPage = 5;
+	private static int rowsPerPage = 10;
 	private static int numsPerPage = 3;
 	private static int totalPages;
 	
@@ -51,9 +50,7 @@ public class BoardService {
 		return "/board/list.jsp";
 	}
 	public String readpost(){
-		
 		BoardDAO dao = new BoardDAO();
-		
 
 		int postnum = Integer.parseInt(request.getParameter("postnum"));
 		
@@ -73,7 +70,40 @@ public class BoardService {
 
 		return "/board/posts_write.jsp";
 	}
+	public String lnkrePostWrite(){
+		
+		BoardVO vo = new BoardVO();
+		
+		vo.setNum(Integer.parseInt(request.getParameter("postnum")));
+		vo.setTitle(request.getParameter("posttitle"));
+
+		request.setAttribute("repostparent", vo);
+		
+		return "/board/repostwrite.jsp";
+	}
+	public String lnkpostListRemove(){
+		System.out.println("dzd");
+		return "/board/postlist_remove.jsp";
+	}
 	// logic
+	public String rePostWrite(){
+		
+		BoardDAO dao = new BoardDAO();
+		BoardVO bvo = new BoardVO();
+		boolean check= false;
+
+		
+		bvo.setRef(Integer.parseInt(request.getParameter("num")));
+		bvo.setTitle(request.getParameter("title"));
+		bvo.setAuthor(request.getParameter("author"));
+		bvo.setContents(request.getParameter("contents"));
+
+		check = dao.daoPostsWrite(bvo);
+		
+		System.out.println(check);
+		
+		return "Board?cmd=list";
+	}
 	public boolean postsWrite(){
 		BoardDAO dao = new BoardDAO();
 		BoardVO vo = new BoardVO();
@@ -114,6 +144,7 @@ public class BoardService {
 	}
 	
 	public String filedownload(){
+		
 		int postnum = Integer.parseInt(request.getParameter("postnum"));
 		int filenum = Integer.parseInt(request.getParameter("filenum"));
 		
@@ -169,12 +200,12 @@ public class BoardService {
 				e.printStackTrace();
 			}
 	
-		//다시 페이지로 돌려줌
+		/*//다시 페이지로 돌려줌
 		BoardDAO bdao = new BoardDAO();
 		BoardVO selectpost = bdao.getpost(postnum);
-		request.setAttribute("selectpost", selectpost);
+		request.setAttribute("selectpost", selectpost);*/
 		
-		return "/board/postread.jsp";
+		return null;
 	}
 	
  	private NavigationVO getNavVO() {
