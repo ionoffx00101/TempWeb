@@ -11,7 +11,7 @@
 <%@ page import="org.apache.commons.io.FilenameUtils"%>
 <%
  request.setCharacterEncoding("utf-8");
-BoardService svc = new BoardService(request);
+BoardService svc = new BoardService(request,response);
 BoardVO vo = new BoardVO();
 AttachedVO avo = new AttachedVO();
 boolean check= false;
