@@ -1,11 +1,14 @@
-<%@ page contentType="text/html; charset=utf-8"
-    pageEncoding="utf-8"%>
-    <%@ page import="java.util.*" %>
-    <%
+<%@page import="java.nio.channels.SeekableByteChannel"%>
+<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ page import="java.util.*" %>
+<%
     Object objList = application.getAttribute("usrList");
     List<String> usrList = null;
-    if(objList!=null) usrList=(List<String>)objList;
-    %>
+    if(objList!=null) {
+    	usrList=(List<String>)objList;
+
+    	}
+%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,14 +37,13 @@ input#chat {
 	margin: 0;
 }
 </style>
-<script type="text/javascript"
-	src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script type="application/javascript">
-	
-
+			//로그인 과정이 필요하다
+			var clientId = '<%=(String)session.getAttribute("id")%>'; 
+			//메세지 보낼때마다 아이디가 심어짐
 	        var Chat = {}; //빈오브젝트..json오브젝트..
 
-	        
 	        Chat.socket = null; //자바스크립트 오브젝트에는 내가 맘대로 속성을 넣을수있다.
 
 	        // connect() 함수 정의
@@ -78,13 +80,12 @@ input#chat {
 	            };
 				
 	            // 서버로부터 메시지를 받은 경우에 호출되는 콜백함수
-	            Chat.socket.onmessage = function (message) {
+	            Chat.socket.onmessage = function (message) {//메세지에 json이 오면 eval를 해주고  그냥 문자열만 온다면 기존처럼 해도된다
 	            	// 수신된 메시지를 화면에 출력함
-	                Console.log(message.data); 
+	            	//기존 Console.log(message.data);
+	            	var jsonObj= eval('('+message.data+')');//json오브젝트로 만드는 과정
+	                Console.log(jsonObj.content); 
 	            };
-	            //서버에 새 사람이 로그인을 했을때 호출되는 콜백함수.
-	            
-	            
 	        });
 	     	// connect() 함수 정의 끝
 	     	
@@ -95,6 +96,7 @@ input#chat {
 	            //ws://ip주소:포트번호/프로젝트명...
 	            //192.168.8.19:8500
 	            	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/chatbasic');//서버쪽에 있는 웹소켓에 접근을 하겠다 
+	            	//connect(host) 에 들어가는 것 위에 있음
 	            	//	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/chat'); //원하는 서버 주소를 넣어야함
 	            } else {
 	                Chat.connect('wss://' + window.location.host + '/websocket/chatbasic');
@@ -105,33 +107,25 @@ input#chat {
 	        Chat.sendMessage = (function() {
 	        	var receiver = $('select[name=receiver]').val();
 	            var message = document.getElementById('chat').value;
-	            var msg = {sender:sender,receiver:receiver,message:message}
-	            if (message != '') {
-	                Chat.socket.send(message);
+	            var msg = {sender:clientId,receiver:receiver,content:message};
+	            if (message != '') {  
+	                Chat.socket.send(JSON.stringify(msg)); //json문자열을 string으로 바꿔주는 메소드이다 JSON.stringity
 	                document.getElementById('chat').value = '';
 	            }
-	            //var selectMember = document.getElementById('member').value;
-	            var selectMember = $('input:checkbox[name="loginmember"]').val(); //선택된 거 체크
-	            //메세지랑 선택된 거 json으로 보내주면 될듯
-	            //선택된 사람 없으면 all
-	           //alert(selectMember);
 	        });
-	        
-	   
-	
+
 	        var Console = {}; // 화면에 메시지를 출력하기 위한 객체 생성
 	
 	        // log() 함수 정의
 	        Console.log = (function(message) {
 	            var console = document.getElementById('console');
-	            alert(message+"<기겅 ㄱ");
 	            var p = document.createElement('p');
 	           // var jsonObj = eval('('+받은 json문자열+')');
 	            p.style.wordWrap = 'break-word';//단어단위로 쪼개라
 	            p.innerHTML = message; //제이쿼리로는 p.html('message')
 	            console.appendChild(p); // 전달된 메시지를 하단에 추가함
 	            // 추가된 메시지가 25개를 초과하면 가장 먼저 추가된 메시지를 한개 삭제함
-	            while (console.childNodes.length > 25) {
+	            while (console.childNodes.length > 25) {//p태그가 25넘어가면 가장 앞의 p를 지운다
 	                console.removeChild(console.firstChild);
 	            }
 	            // 스크롤을 최상단에 있도록 설정함
@@ -141,25 +135,17 @@ input#chat {
 	
 	        // 위에 정의된 함수(접속시도)를 호출함
 	       // Chat.initialize();
-	$(function() {
-		Chat.initialize();
-	});
+		$(function() { // 위에 정의한 모든 함수를 호출할수있지
+			Chat.initialize();
+		});	
 
 	    
 </script>
 </head>
 <body>
-
-	<div>
-		<div id="console-container">
-			<div id="console" />
-		</div>
-		<p>
-			<input type="text" placeholder="type and press enter to chat"
-				id="chat" />
-		</p>
-		<select name="receiver">
-		<%
+대화 상대 선택
+		<select name="receiver"> 
+		<% // 사람이 들어올때마다 갱신하려면 웹소켓을 이용해야한다
 		if(usrList!=null){
 			for(int i=0;i<usrList.size();i++){
 				%>
@@ -169,6 +155,15 @@ input#chat {
 		}
 		%>
 		</select>
+	<div>
+		<div id="console-container">
+			<div id="console" />
+		</div>
+		<p>
+			<input type="text" placeholder="type and press enter to chat"
+				id="chat" />
+		</p>
+		
 	</div>
 </body>
 </html>
