@@ -1,8 +1,9 @@
-<%@page import="java.nio.channels.SeekableByteChannel"%>
-<%@ page contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ page language="java" contentType="text/html; charset=utf-8"
+    pageEncoding="utf-8"%>
 <%@ page import="java.util.*" %>
 <%
     Object objList = application.getAttribute("usrList");
+String myid =(String)session.getAttribute("id");
     List<String> usrList = null;
     if(objList!=null) {
     	usrList=(List<String>)objList;
@@ -12,16 +13,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Apache Tomcat WebSocket Examples: Chat</title>
+<meta charset="utf-8">
+<title>그리는 곳</title>
 <style type="text/css">
-input#chat {
-	width: 410px
-}
-
-#console-container {
-	width: 400px;
-}
-
 #console {
 	border: 1px solid #CCCCCC;
 	border-right-color: #999999;
@@ -63,12 +57,12 @@ input#chat {
 	            Chat.socket.onopen = function () {
 	                Console.log('Info: WebSocket connection opened.');
 	                // 채팅입력창에 메시지를 입력하기 위해 키를 누르면 호출되는 콜백함수
-	                document.getElementById('chat').onkeydown = function(event) {
+	              /*   document.getElementById('chat').onkeydown = function(event) {
 	                    // 엔터키가 눌린 경우, 서버로 메시지를 전송함
 	                    if (event.keyCode == 13) {
 	                        Chat.sendMessage();
 	                    }
-	                };
+	                }; */
 	     
 	            };
 				
@@ -84,7 +78,7 @@ input#chat {
 	            	// 수신된 메시지를 화면에 출력함
 	            	//기존 Console.log(message.data);
 	            	var jsonObj= eval('('+message.data+')');//json오브젝트로 만드는 과정
-	                Console.log(jsonObj.content); 
+	                Console.log(jsonObj); //콘솔말고 로그에 출력
 	            };
 	        });
 	     	// connect() 함수 정의 끝
@@ -95,34 +89,53 @@ input#chat {
 	                //Chat.connect('ws://' + window.location.host + '/websocket/chat');
 	            //ws://ip주소:포트번호/프로젝트명...
 	            //192.168.8.19:8500
-	            	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/chatbasic');//서버쪽에 있는 웹소켓에 접근을 하겠다 
+	            	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/networkdraw');//서버쪽에 있는 웹소켓에 접근을 하겠다 
 	            	//connect(host) 에 들어가는 것 위에 있음
 	            	//	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/chat'); //원하는 서버 주소를 넣어야함
 	            } else {
-	                Chat.connect('wss://' + window.location.host + '/websocket/chatbasic');
+	                Chat.connect('wss://' + window.location.host + '/websocket/networkdraw');
 	            }
 	        };
 	
 	        // 서버로 메시지를 전송하고 입력창에서 메시지를 제거함
-	        Chat.sendMessage = (function() {
+	        Chat.sendMessage = (function(x1,y1,x2,y2) {
+	        	
 	        	var receiver = $('select[name=receiver]').val();
-	            var message = document.getElementById('chat').value;
-	            var msg = {sender:clientId,receiver:receiver,content:message};
-	            if (message != '') {  
+	        	var sendx1 = ""+x1;
+	        	var sendx2 =""+x2;
+	        	var sendy1 =""+y1;
+	        	var sendy2 =""+y2;
+	        	
+	            var msg = {sender:clientId,receiver:receiver,x1:sendx1,y1:sendy1,x2:sendx2,y2:sendy2,clear:false};
+	            
+	            if (x1 != '') {  
 	                Chat.socket.send(JSON.stringify(msg)); //json문자열을 string으로 바꿔주는 메소드이다 JSON.stringify
-	                document.getElementById('chat').value = '';
 	            }
 	        });
-
+  			Chat.sendClear = (function() {
+	        	var receiver = $('select[name=receiver]').val();
+	        	
+	            var msg = {sender:clientId,receiver:receiver,clear:true};
+	            
+	            if (x1 != '') {  
+	                Chat.socket.send(JSON.stringify(msg)); //json문자열을 string으로 바꿔주는 메소드이다 JSON.stringify
+	            }
+	        });
 	        var Console = {}; // 화면에 메시지를 출력하기 위한 객체 생성
 	
 	        // log() 함수 정의
-	        Console.log = (function(message) {
+	        Console.log = (function(jsonObj) {
+
 	            var console = document.getElementById('console');
+	         
 	            var p = document.createElement('p');
-	           // var jsonObj = eval('('+받은 json문자열+')');
+	            //var jsonObj = eval('('+message+')');
+	           // alert(jsonObj.get("x1"));
 	            p.style.wordWrap = 'break-word';//단어단위로 쪼개라
-	            p.innerHTML = message; //제이쿼리로는 p.html('message')
+	            p.innerHTML = jsonObj; //제이쿼리로는 p.html('message')
+	            if(jsonObj.clear){receiveRemove(); return;}
+	            receiveDraw(jsonObj.x1,jsonObj.y1,jsonObj.x2,jsonObj.y2);
+	   
 	            console.appendChild(p); // 전달된 메시지를 하단에 추가함
 	            // 추가된 메시지가 25개를 초과하면 가장 먼저 추가된 메시지를 한개 삭제함
 	            while (console.childNodes.length > 25) {//p태그가 25넘어가면 가장 앞의 p를 지운다
@@ -141,10 +154,111 @@ input#chat {
 
 	    
 </script>
+<script type="text/javascript">
+/* canvas1 내거 드로잉함 */
+var cnt =0;
+var ctx = null;
+var x1=y1=x2=y2=0;
+var isDrag =false;
+
+$(function() {
+ 	var $canvas = $('canvas').eq(0);
+	ctx = $canvas[0].getContext("2d"); 
+	
+	$canvas.on('mousedown',function(evt){
+		x1 = evt.pageX - this.offsetLeft;
+		y1 = evt.pageY - this.offsetTop;
+		 $("#log1").text("다운 :"+"e.pageX: " + evt.pageX + ", e.pageY: " + evt.pageY); 
+		isDrag =true;
+	});
+	
+	$canvas.on('mouseup',function(evt){
+		isDrag=false;
+		 $("#log2").text("업 :"+"e.pageX: " + evt.pageX + ", e.pageY: " + evt.pageY); 
+	});
+	
+	$canvas.on('mousemove',function(evt){
+		if(isDrag){
+			 $("#log3").text("무브 :"+"e.pageX: " + evt.pageX + ", e.pageY: " + evt.pageY); 
+			x2 = evt.pageX - this.offsetLeft;
+			y2 = evt.pageY - this.offsetTop;
+			
+			Chat.sendMessage(x1,y1,x2,y2);	  
+			drawLine(x1,y1,x2,y2);
+			//sendmessage
+			x1=x2;
+			y1=y2;    
+		}
+	});
+	$('#cleanAll').on('click',function(evt){
+		Chat.sendClear();	
+		ctx.clearRect(0, 0, canvas1.width, canvas1.height);
+		
+	});
+});
+function drawLine(x1,y1,x2,y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = 1;
+    ctx.lineWidth = 'black';
+    ctx.stroke();
+    ctx.closePath();
+}
+
+/* 캔버스 2 남의 것이 그려짐 */
+var cnt_t =0;
+var ctx_t = null;
+var x1_t=y1_t=x2_t=y2_t=0;
+var isDrag_t =false;
+
+$(function() {
+ 	var $canvas_t = $('canvas').eq(1);
+	ctx_t = $canvas_t[0].getContext("2d"); 
+	
+/* 	$canvas_t.on('mousedown',function(evt){
+		x1_t = evt.pageX - this.offsetLeft;
+		y1_t = evt.pageY - this.offsetTop;
+		isDrag_t =true;
+	});
+	
+	$canvas_t.on('mouseup',function(evt){
+		isDrag_t=false;
+	});
+	
+	$canvas_t.on('mousemove',function(evt){
+		if(isDrag_t){
+			x2_t = evt.pageX - this.offsetLeft;
+			y2_t = evt.pageY - this.offsetTop;
+				  
+			drawLine_t(x1_t,y1_t,x2_t,y2_t);
+			x1_t=x2_t;
+			y1_t=y2_t;    
+		}
+	}); */
+	$('#cleanAll_t').on('click',function(evt){
+		ctx_t.clearRect(0, 0, canvas2.width, canvas2.height);
+	});
+});
+function receiveRemove() {
+	ctx_t.clearRect(0, 0, canvas2.width, canvas2.height);
+}
+function receiveDraw(x1,y1,x2,y2) {
+	ctx_t.beginPath();
+    ctx_t.moveTo(x1, y1);
+    ctx_t.lineTo(x2, y2);
+    ctx_t.strokeStyle = 1;
+   ctx_t.lineWidth = 'black';
+    ctx_t.stroke();
+    ctx_t.closePath();
+}
+
+</script>
+
 </head>
 <body>
-대화 상대 선택
-		<select name="receiver"> 
+내 이름 : <%=myid %> <br>
+상대방 이름 :  <select name="receiver"> 
 		<% // 사람이 들어올때마다 갱신하려면 웹소켓을 이용해야한다
 		if(usrList!=null){
 			for(int i=0;i<usrList.size();i++){
@@ -154,16 +268,18 @@ input#chat {
 			}
 		}
 		%>
-		</select>
-	<div>
-		<div id="console-container">
+		</select><br>
+ <br>
+ <button id='cleanAll'>지우개</button>
+ <!-- <button id='cleanAll_t'>지우개</button> -->
+
+ <br> <br>
+	<canvas id="canvas1" width="500" height="500" style="border: 1px solid #cccccc; "></canvas>&lt;보내는거 
+	받는거&rsaquo;
+	<canvas id="canvas2" width="500" height="500" style="border: 1px solid #cccccc; "></canvas>
+	<br>디버그용
+	<div id="console-container">
 			<div id="console" />
 		</div>
-		<p>
-			<input type="text" placeholder="type and press enter to chat"
-				id="chat" />
-		</p>
-		
-	</div>
 </body>
 </html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>그리는 곳</title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script type="text/javascript">
+
+	
+var cnt =0;
+var ctx = null;
+var x1=y1=x2=y=0;
+var isDrag =false;
+
+$(function() {
+ 	var $canvas = $('canvas').eq(0);
+	ctx = $canvas[0].getContext("2d"); 
+	
+	$canvas.on('mousedown',function(evt){
+		x1 = evt.pageX - this.offsetLeft;
+		y1 = evt.pageY - this.offsetTop;
+		 $("#log1").text("다운 :"+"e.pageX: " + evt.pageX + ", e.pageY: " + evt.pageY); 
+		isDrag =true;
+	});
+	
+	$canvas.on('mouseup',function(evt){
+		isDrag=false;
+		 $("#log2").text("업 :"+"e.pageX: " + evt.pageX + ", e.pageY: " + evt.pageY); 
+	});
+	
+	$canvas.on('mousemove',function(evt){
+		if(isDrag){
+			 $("#log3").text("무브 :"+"e.pageX: " + evt.pageX + ", e.pageY: " + evt.pageY); 
+			x2 = evt.pageX - this.offsetLeft;
+			y2 = evt.pageY - this.offsetTop;
+				  
+			drawLine(x1,y1,x2,y2);
+			x1=x2;
+			y1=y2;    
+		}
+	});
+	$('#cleanAll').on('click',function(evt){
+		ctx.clearRect(0, 0, canvas1.width, canvas1.height);
+	});
+});
+function drawLine(x1,y1,x2,y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = 1;
+    ctx.lineWidth = 'black';
+    ctx.stroke();
+    ctx.closePath();
+}
+
+</script>
+
+</head>
+<body>
+ <br>
+ <button id='cleanAll'>지우개</button>
+ <br> <br>
+	<canvas id="canvas1" width="1000" height="500" style="border: 1px solid #cccccc; "></canvas>
+
+</body>
+</html>
