@@ -5,8 +5,11 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.websocket.EncodeException;
@@ -35,8 +38,9 @@ public class ChatAnnotation {
 	private static Map<String, Session> sessionMap = new HashMap<>();
 	private HttpSession httpSession;
 	
-	String receiver;
-
+	StringBuffer sb = new StringBuffer();
+	String sender,receiver,fname;
+ 
 	@OnOpen // 커넥션이 처음 열리면= 이용자가 처음접속하면 돌아간다 소켓이 열리면
 	public void start(Session session, EndpointConfig config) {
 
@@ -58,10 +62,29 @@ public class ChatAnnotation {
 			objList = usrList;
 		}
 		List<String> usrList = (List<String>) objList;
-		usrList.add(userId);
 		
-	        
-	        
+		usrList.add(userId);   
+		broadcast(userId,usrList);  
+	}
+
+	private void broadcast(String sender, List<String> usrList) {
+		Set<String> set = sessionMap.keySet();
+		
+		Iterator<String> it = set.iterator();
+		
+		while (it.hasNext()){
+			String usrid = it.next();
+			if(usrid.equals(sender)){continue;}
+			JSONObject jsonObj = new JSONObject();
+			JSONArray jsonArr = new JSONArray();
+			jsonArr.addAll(0, usrList);
+			jsonObj.put("usrList", usrList);
+			/*
+			Writer writer = Session*/
+			
+			
+		}
+		
 	}
 
 	@OnClose
@@ -93,7 +116,8 @@ public class ChatAnnotation {
 	    	if (msg == null || msg.trim().equals("")){
 				return;
 			}*/
-			
+			sb.append(msg);
+			if(last){
 			JSONParser jsonParser = new JSONParser();
 			try {
 				JSONObject jsonObj = (JSONObject) jsonParser.parse(msg);
@@ -111,7 +135,7 @@ public class ChatAnnotation {
 				e.printStackTrace();
 			}
 	        
-	        
+			}
 	    }
 	  
 	  
