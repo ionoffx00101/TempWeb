@@ -1,4 +1,4 @@
-package org.kdea.java.draw;
+package org.kdea.java.allchat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import org.json.simple.parser.*;
 
 // 톰캣이 제공하는 서버api를 이용해서 만든 웹소켓
 //우리가 만든클래스지만 서버쪽 소켓이 된다
-@ServerEndpoint(value = "/websocket/networkdraw", configurator = ServletAwareConfig.class) // 클라이언트가 접속할 때 사용될 URI ServletAwareConfig는 만들어야한다
+@ServerEndpoint(value = "/websocket/allchat", configurator = ServletAwareConfig.class) // 클라이언트가 접속할 때 사용될 URI ServletAwareConfig는 만들어야한다
 // @ServerEndpoint(value = "/websocket/chat") //클라이언트가 접속할 때 사용될 URI
 public class ChatAnnotation {
 

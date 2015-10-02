@@ -3,7 +3,7 @@
 <%@ page import="java.util.*" %>
 <%
     Object objList = application.getAttribute("usrList");
-String myid =(String)session.getAttribute("id");
+	String myid =(String)session.getAttribute("id");
     List<String> usrList = null;
     if(objList!=null) {
     	usrList=(List<String>)objList;
@@ -16,6 +16,13 @@ String myid =(String)session.getAttribute("id");
 <meta charset="utf-8">
 <title>그리는 곳</title>
 <style type="text/css">
+input #chat {
+	width: 410px
+}
+
+#console-container {
+	width: 700px;
+}
 #console {
 	border: 1px solid #CCCCCC;
 	border-right-color: #999999;
@@ -57,12 +64,12 @@ String myid =(String)session.getAttribute("id");
 	            Chat.socket.onopen = function () {
 	                Console.log('Info: WebSocket connection opened.');
 	                // 채팅입력창에 메시지를 입력하기 위해 키를 누르면 호출되는 콜백함수
-	              /*   document.getElementById('chat').onkeydown = function(event) {
+	                 document.getElementById('chat').onkeydown = function(event) {
 	                    // 엔터키가 눌린 경우, 서버로 메시지를 전송함
 	                    if (event.keyCode == 13) {
 	                        Chat.sendMessage();
 	                    }
-	                }; */
+	                }; 
 	     
 	            };
 				
@@ -89,11 +96,11 @@ String myid =(String)session.getAttribute("id");
 	                //Chat.connect('ws://' + window.location.host + '/websocket/chat');
 	            //ws://ip주소:포트번호/프로젝트명...
 	            //192.168.8.19:8500
-	            	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/networkdraw');//서버쪽에 있는 웹소켓에 접근을 하겠다 
+	            	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/allchat');//서버쪽에 있는 웹소켓에 접근을 하겠다 
 	            	//connect(host) 에 들어가는 것 위에 있음
 	            	//	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/chat'); //원하는 서버 주소를 넣어야함
 	            } else {
-	                Chat.connect('wss://' + window.location.host + '/websocket/networkdraw');
+	                Chat.connect('wss://' + window.location.host + '/websocket/allchat');
 	            }
 	        };
 	
@@ -121,19 +128,6 @@ String myid =(String)session.getAttribute("id");
 	                Chat.socket.send(JSON.stringify(msg)); //json문자열을 string으로 바꿔주는 메소드이다 JSON.stringify
 	            }
 	        });
-  			
- /*  			function saveData(blob,fileName) { 
-  				var a= document.createElement("a");
-  				document.body.appendchild(a);
-  				a.style = "display:none";
-  				
-  				url = window.URL.createObjectURL(blob);
-  				a.href= url;
-  				a.download =fileName;
-  				a.click();
-  				window.URL.revokeObjectURL(url):
-				
-			}; */
   			
   			
 	        var Console = {}; // 화면에 메시지를 출력하기 위한 객체 생성
@@ -231,29 +225,6 @@ $(function() {
  	var $canvas_t = $('canvas').eq(1);
 	ctx_t = $canvas_t[0].getContext("2d"); 
 	
-/* 	$canvas_t.on('mousedown',function(evt){
-		x1_t = evt.pageX - this.offsetLeft;
-		y1_t = evt.pageY - this.offsetTop;
-		isDrag_t =true;
-	});
-	
-	$canvas_t.on('mouseup',function(evt){
-		isDrag_t=false;
-	});
-	
-	$canvas_t.on('mousemove',function(evt){
-		if(isDrag_t){
-			x2_t = evt.pageX - this.offsetLeft;
-			y2_t = evt.pageY - this.offsetTop;
-				  
-			drawLine_t(x1_t,y1_t,x2_t,y2_t);
-			x1_t=x2_t;
-			y1_t=y2_t;    
-		}
-	}); */
-	$('#cleanAll_t').on('click',function(evt){
-		ctx_t.clearRect(0, 0, canvas2.width, canvas2.height);
-	});
 });
 function receiveRemove() {
 	ctx_t.clearRect(0, 0, canvas2.width, canvas2.height);
@@ -268,6 +239,72 @@ function receiveDraw(x1,y1,x2,y2) {
     ctx_t.closePath();
 }
 
+function sendBinary() {
+    Chat.sendBinary();
+}
+ 
+// Blob 를 파일에 저장
+function saveData(blob, fileName) {
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+
+    url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+};
+ 
+// ArrayBuffer 를 파일에 저장
+function saveData2(arrayBuffer, fileName) {
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+    var parts = [];
+    parts.push(arrayBuffer);
+    url = window.URL.createObjectURL(new Blob(parts));
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+};
+ 
+//canvas의 이미지 데이터를 서버로 전송하는 예
+function sendImgArrayBuffer(){
+    // Sending canvas ImageData as ArrayBuffer
+    var img = canvas_context.getImageData(0, 0, 400, 320);
+    var binary = new Uint8Array(img.data.length);
+    for (var i = 0; i < img.data.length; i++) {
+      binary[i] = img.data[i];
+    }
+    Chat.socket.send(binary.buffer);
+};
+ 
+ /* 파일 전송 */
+//파일을 Blob를 서버로 전송함
+function sendFileBlob() {
+    // Sending file as Blob
+    var file = document.querySelector('input[type="file"]').files[0];
+    Chat.socket.send(file);
+}
+ 
+//파일을 ArrayBuffer를 서버로 전송함
+function sendFileArrayBuffer() {
+    var file = document.querySelector('input[type="file"]').files[0];
+    var fileReader = new FileReader();
+    fileReader.onload = function() {
+        arrayBuffer = this.result;
+        Chat.socket.send(arrayBuffer);
+    };
+    fileReader.readAsArrayBuffer(file);
+}
+//파일박스에서 선택된 파일의 이름을 구하는 방법
+var filename = '';
+function onChange(files){
+filename = files[0].name;
+alert('선택변경:'+files[0].name);
+}
 </script>
 
 </head>
@@ -283,18 +320,28 @@ function receiveDraw(x1,y1,x2,y2) {
 			}
 		}
 		%>
-		</select><br>
+		</select>
  <br>
- <button id='cleanAll'>지우개</button>
- <!-- <button id='cleanAll_t'>지우개</button> -->
-
- <br> <br>
-	<canvas id="canvas1" width="500" height="500" style="border: 1px solid #cccccc; "></canvas>&lt;보내는거 
-	받는거&rsaquo;
-	<canvas id="canvas2" width="500" height="500" style="border: 1px solid #cccccc; "></canvas>
-	<br>디버그용
+ <br>
+<!--  채팅 창 -->
 	<div id="console-container">
 			<div id="console" />
-		</div>
+	</div>
+		<!-- 파일 선택 -->
+		<input type="file" onchange="onChange(this.files);">
+		<input type="button" value="바이너리 데이터 전송" onclick="sendBinary();">
+		<!-- 채팅입력 -->
+		<p>
+			<input type="text" placeholder="type and press enter to chat"
+				id="chat" />
+		</p>
+	<br>
+<!-- 캔버스 영역 -->
+	<button id='cleanAll'>지우개</button>
+ 	<br><br>
+	<canvas id="canvas1" width="250" height="250" style="border: 1px solid #cccccc; "></canvas>&lt;보내는거 
+	받는거&rsaquo;
+	<canvas id="canvas2" width="250" height="250" style="border: 1px solid #cccccc; "></canvas>
+	
 </body>
 </html>

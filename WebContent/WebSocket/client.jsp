@@ -163,6 +163,7 @@ input#chat {
 			<input type="text" placeholder="type and press enter to chat"
 				id="chat" />
 		</p>
+	
 		
 	</div>
 </body>
