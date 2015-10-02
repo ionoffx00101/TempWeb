@@ -1,4 +1,4 @@
-package org.kdea.java.allchat;
+package org.kdea.java.allfn;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,7 +21,7 @@ import org.json.simple.parser.*;
 
 // 톰캣이 제공하는 서버api를 이용해서 만든 웹소켓
 //우리가 만든클래스지만 서버쪽 소켓이 된다
-@ServerEndpoint(value = "/websocket/allchat", configurator = ServletAwareConfig.class) // 클라이언트가 접속할 때 사용될 URI ServletAwareConfig는 만들어야한다
+@ServerEndpoint(value = "/websocket/allfn", configurator = ServletAwareConfig.class) // 클라이언트가 접속할 때 사용될 URI ServletAwareConfig는 만들어야한다
 // @ServerEndpoint(value = "/websocket/chat") //클라이언트가 접속할 때 사용될 URI
 public class ChatAnnotation {
 	
@@ -75,30 +75,19 @@ public class ChatAnnotation {
 	@OnMessage
 	public void incoming(String message) {
 
-		String threadName = "Thread-Name:" + Thread.currentThread().getName();
-
 		if (message == null || message.trim().equals("")){
 			return;
 		}
-
+		
 		JSONParser jsonParser = new JSONParser();
 		try {
 			JSONObject jsonObj = (JSONObject) jsonParser.parse(message);
 			String sender = (String) jsonObj.get("sender");
 			String receiver = (String) jsonObj.get("receiver");
-			String x1 = (String) jsonObj.get("x1");
-			/*if(receiver.equals("all")){
-				while (en.hasMoreElements()) {
-					type type = (type) en.nextElement();
-					
-				}
-				sessionMap.get(receiver).getBasicRemote().sendText(message);
-				
-			}*/
+	
 			try {
-				sessionMap.get(receiver).getBasicRemote().sendText(message);
 				sessionMap.get(sender).getBasicRemote().sendText(message);
-	                
+				sessionMap.get(receiver).getBasicRemote().sendText(message);     
 				return;
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -108,7 +97,7 @@ public class ChatAnnotation {
 		}
 
 	}
-	// @OnMessage
+	/*// @OnMessage
 	    public void echoTextMessage(Session session, String msg, boolean last)
 	            throws IOException {
 	        System.out.println("텍스트 메시지 도착:"+msg);
@@ -139,7 +128,7 @@ public class ChatAnnotation {
 	            stream = null;
 	            System.out.println("서버-->클라이언트 바이너리 전송완료");
 	        }
-	    }
+	    }*/
 	@OnError
 	public void onError(Throwable t) throws Throwable {
 		System.err.println("Chat Error: " + t.toString());

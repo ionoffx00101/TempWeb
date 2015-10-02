@@ -7,7 +7,6 @@
     List<String> usrList = null;
     if(objList!=null) {
     	usrList=(List<String>)objList;
-
     	}
 %>
 <!DOCTYPE html>
@@ -43,6 +42,7 @@ input #chat {
 			//로그인 과정이 필요하다
 			var clientId = '<%=(String)session.getAttribute("id")%>'; 
 			//메세지 보낼때마다 아이디가 심어짐
+			
 	        var Chat = {}; //빈오브젝트..json오브젝트..
 
 	        Chat.socket = null; //자바스크립트 오브젝트에는 내가 맘대로 속성을 넣을수있다.
@@ -56,18 +56,21 @@ input #chat {
 	            } else if ('MozWebSocket' in window) { // 모질라를 기반으로 한 브라우저는 mozwebsocket라고 부른다
 	                Chat.socket = new MozWebSocket(host);
 	            } else { //위에 둘다없으면 접속실패로 이게 된다.
-	                Console.log('Error: WebSocket is not supported by this browser.');
+	                Console.log({msg:'Error: WebSocket is not supported by this browser.'});
 	                return;
 	            }
 	
 	             // 서버에 접속이 되면 자동으로 호출되는 콜백함수
 	            Chat.socket.onopen = function () {
-	                Console.log('Info: WebSocket connection opened.');
+	                Console.log({msg:'Info: WebSocket connection opened.'});
 	                // 채팅입력창에 메시지를 입력하기 위해 키를 누르면 호출되는 콜백함수
 	                 document.getElementById('chat').onkeydown = function(event) {
 	                    // 엔터키가 눌린 경우, 서버로 메시지를 전송함
 	                    if (event.keyCode == 13) {
-	                        Chat.sendMessage();
+	                    	var receiver = $('select[name=receiver]').val();
+	                        var message = document.getElementById('chat').value;
+	                        Chat.sendMessage({sender:clientId, receiver:receiver, msg:message});
+	                        document.getElementById('chat').value = '';
 	                    }
 	                }; 
 	     
@@ -77,15 +80,27 @@ input #chat {
 	            Chat.socket.onclose = function () {
 	            	// 채팅 입력창 이벤트를 제거함
 	                document.getElementById('chat').onkeydown = null;
-	                Console.log('Info: WebSocket closed.');
+	                Console.log({msg:'Info: WebSocket closed.'});
 	            };
 				
 	            // 서버로부터 메시지를 받은 경우에 호출되는 콜백함수
 	            Chat.socket.onmessage = function (message) {//메세지에 json이 오면 eval를 해주고  그냥 문자열만 온다면 기존처럼 해도된다
-	            	// 수신된 메시지를 화면에 출력함
-	            	//기존 Console.log(message.data);
-	            	var jsonObj= eval('('+message.data+')');//json오브젝트로 만드는 과정
-	                Console.log(jsonObj); //콘솔말고 로그에 출력
+	            	
+	            	 var jsonObj = eval('('+message.data+')');
+	                 if('clear' in jsonObj) {
+	                	 receiveRemove();
+	                 }
+	                 else if('content' in jsonObj) {
+	                     var jsonLine = jsonObj.content;
+	                     receiveDraw(jsonLine);
+	                 }
+	                 else if('msg' in jsonObj){
+	                	 Console.log(jsonObj);
+	                 }
+	                 else if('file' in jsonObj){
+	                	 saveData(jsonObj);
+	                 }
+
 	            };
 	        });
 	     	// connect() 함수 정의 끝
@@ -93,39 +108,18 @@ input #chat {
 	     	// 위에서 정의한 connect() 함수를 호출하여 접속을 시도함
 	        Chat.initialize = function() {
 	            if (window.location.protocol == 'http:') {//웹브라우저의 주소창이 http냐
-	                //Chat.connect('ws://' + window.location.host + '/websocket/chat');
-	            //ws://ip주소:포트번호/프로젝트명...
-	            //192.168.8.19:8500
-	            	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/allchat');//서버쪽에 있는 웹소켓에 접근을 하겠다 
-	            	//connect(host) 에 들어가는 것 위에 있음
-	            	//	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/chat'); //원하는 서버 주소를 넣어야함
+
+	            	Chat.connect('ws://192.168.8.19:8500/TempWeb/websocket/allfn');//서버쪽에 있는 웹소켓에 접근을 하겠다 
 	            } else {
-	                Chat.connect('wss://' + window.location.host + '/websocket/allchat');
+	                Chat.connect('wss://' + window.location.host + '/websocket/allfn');
 	            }
 	        };
 	
 	        // 서버로 메시지를 전송하고 입력창에서 메시지를 제거함
-	        Chat.sendMessage = (function(x1,y1,x2,y2) {
+	        Chat.sendMessage = (function(jsonObj) {
 	        	
-	        	var receiver = $('select[name=receiver]').val();
-	        	var sendx1 = ""+x1;
-	        	var sendx2 =""+x2;
-	        	var sendy1 =""+y1;
-	        	var sendy2 =""+y2;
-	        	
-	            var msg = {sender:clientId,receiver:receiver,x1:sendx1,y1:sendy1,x2:sendx2,y2:sendy2,clear:false};
-	            
-	            if (x1 != '') {  
-	                Chat.socket.send(JSON.stringify(msg)); //json문자열을 string으로 바꿔주는 메소드이다 JSON.stringify
-	            }
-	        });
-  			Chat.sendClear = (function() {
-	        	var receiver = $('select[name=receiver]').val();
-	        	
-	            var msg = {sender:clientId,receiver:receiver,clear:true};
-	            
-	            if (x1 != '') {  
-	                Chat.socket.send(JSON.stringify(msg)); //json문자열을 string으로 바꿔주는 메소드이다 JSON.stringify
+	        	if (jsonObj != null) {
+	                Chat.socket.send(JSON.stringify(jsonObj));
 	            }
 	        });
   			
@@ -138,12 +132,12 @@ input #chat {
 	            var console = document.getElementById('console');
 	         
 	            var p = document.createElement('p');
-	            //var jsonObj = eval('('+message+')');
-	           // alert(jsonObj.get("x1"));
-	            p.style.wordWrap = 'break-word';//단어단위로 쪼개라
-	            p.innerHTML = jsonObj; //제이쿼리로는 p.html('message')
-	            if(jsonObj.clear){receiveRemove(); return;}
-	            receiveDraw(jsonObj.x1,jsonObj.y1,jsonObj.x2,jsonObj.y2);
+	            p.style.wordWrap = 'break-word';
+	            p.innerHTML = jsonObj.sender+" : "+jsonObj.msg; 
+	           /*  p.innerHTML = jsonObj.msg;  */
+	            
+	           /*  if(jsonObj.clear){receiveRemove(); return;}
+	            //receiveDraw(jsonObj.x1,jsonObj.y1,jsonObj.x2,jsonObj.y2); */
 	   
 	            console.appendChild(p); // 전달된 메시지를 하단에 추가함
 	            // 추가된 메시지가 25개를 초과하면 가장 먼저 추가된 메시지를 한개 삭제함
@@ -161,9 +155,6 @@ input #chat {
 			Chat.initialize();
 		});	
 
-	    
-</script>
-<script type="text/javascript">
 /* canvas1 내거 드로잉함 */
 var cnt =0;
 var ctx = null;
@@ -177,22 +168,26 @@ $(function() {
 	$canvas.on('mousedown',function(evt){
 		x1 = evt.pageX - this.offsetLeft;
 		y1 = evt.pageY - this.offsetTop;
-		 $("#log1").text("다운 :"+"e.pageX: " + evt.pageX + ", e.pageY: " + evt.pageY); 
+		 
 		isDrag =true;
 	});
 	
 	$canvas.on('mouseup',function(evt){
 		isDrag=false;
-		 $("#log2").text("업 :"+"e.pageX: " + evt.pageX + ", e.pageY: " + evt.pageY); 
+		
 	});
 	
 	$canvas.on('mousemove',function(evt){
 		if(isDrag){
-			 $("#log3").text("무브 :"+"e.pageX: " + evt.pageX + ", e.pageY: " + evt.pageY); 
 			x2 = evt.pageX - this.offsetLeft;
 			y2 = evt.pageY - this.offsetTop;
 			
-			Chat.sendMessage(x1,y1,x2,y2);	  
+			var receiver = $('select[name=receiver]').val();
+            var msg = {sender:clientId, receiver:receiver};
+            msg.content = {x1:x1, y1:y1, x2:x2, y2:y2};
+ 
+            Chat.sendMessage(msg);
+              
 			drawLine(x1,y1,x2,y2);
 			//sendmessage
 			x1=x2;
@@ -200,7 +195,10 @@ $(function() {
 		}
 	});
 	$('#cleanAll').on('click',function(evt){
-		Chat.sendClear();	
+		
+		var receiver = $('select[name=receiver]').val();
+        Chat.sendMessage({sender:clientId, receiver:receiver, clear:true});
+
 		ctx.clearRect(0, 0, canvas1.width, canvas1.height);
 		
 	});
@@ -229,56 +227,39 @@ $(function() {
 function receiveRemove() {
 	ctx_t.clearRect(0, 0, canvas2.width, canvas2.height);
 }
-function receiveDraw(x1,y1,x2,y2) {
+function receiveDraw(jsonLine) {
+	
 	ctx_t.beginPath();
-    ctx_t.moveTo(x1, y1);
-    ctx_t.lineTo(x2, y2);
+    ctx_t.moveTo(jsonLine.x1, jsonLine.y1);
+    ctx_t.lineTo(jsonLine.x2, jsonLine.y2);
     ctx_t.strokeStyle = 1;
-   ctx_t.lineWidth = 'black';
+   	ctx_t.lineWidth = 'black';
     ctx_t.stroke();
     ctx_t.closePath();
 }
+
 // 파일 저장
 function sendBinary() {
     Chat.sendBinary();
 }
- 
+
+Chat.sendBinary = (function() {
+    // Blob, ArrayBuffer 둘 중 한가지 방법으로 전송
+    sendFileBlob();
+    //sendFileArrayBuffer();
+});
 // Blob 를 파일에 저장
-function saveData(blob, fileName) {
+function saveData(jsonObj) {
+	
     var a = document.createElement("a");
     document.body.appendChild(a);
     a.style = "display: none";
 
-    url = window.URL.createObjectURL(blob);
+    url = window.URL.createObjectURL(jsonObj.file);
     a.href = url;
-    a.download = fileName;
+    a.download = jsonObj.fileName;
     a.click();
     window.URL.revokeObjectURL(url);
-};
- 
-// ArrayBuffer 를 파일에 저장
-function saveData2(arrayBuffer, fileName) {
-    var a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style = "display: none";
-    var parts = [];
-    parts.push(arrayBuffer);
-    url = window.URL.createObjectURL(new Blob(parts));
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    window.URL.revokeObjectURL(url);
-};
- 
-//canvas의 이미지 데이터를 서버로 전송하는 예
-function sendImgArrayBuffer(){
-    // Sending canvas ImageData as ArrayBuffer
-    var img = canvas_context.getImageData(0, 0, 400, 320);
-    var binary = new Uint8Array(img.data.length);
-    for (var i = 0; i < img.data.length; i++) {
-      binary[i] = img.data[i];
-    }
-    Chat.socket.send(binary.buffer);
 };
  
  /* 파일 전송 */
@@ -286,19 +267,13 @@ function sendImgArrayBuffer(){
 function sendFileBlob() {
     // Sending file as Blob
     var file = document.querySelector('input[type="file"]').files[0];
-    Chat.socket.send(file);
+    
+    var receiver = $('select[name=receiver]').val();
+    Chat.sendMessage({sender:clientId, receiver:receiver, file:file,filename:filename});
+    
+    //Chat.socket.send(file);
 }
- 
-//파일을 ArrayBuffer를 서버로 전송함
-function sendFileArrayBuffer() {
-    var file = document.querySelector('input[type="file"]').files[0];
-    var fileReader = new FileReader();
-    fileReader.onload = function() {
-        arrayBuffer = this.result;
-        Chat.socket.send(arrayBuffer);
-    };
-    fileReader.readAsArrayBuffer(file);
-}
+
 //파일박스에서 선택된 파일의 이름을 구하는 방법
 var filename = '';
 function onChange(files){

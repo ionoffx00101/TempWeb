@@ -11,6 +11,6 @@ session.setAttribute("id", id);
 <title>Insert title here</title>
 </head>
 <body>
-<a href="sendFile.jsp"> 그림그리기</a>
+<a href="chating.jsp"> 그림그리기</a>
 </body>
 </html>
