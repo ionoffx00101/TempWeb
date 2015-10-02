@@ -73,20 +73,31 @@ input #chat {
 	                Console.log({msg:'Info: WebSocket closed.'});
 	            };
 				
-	            Chat.socket.onmessage = function (message) {
 
-	            	 var jsonObj = eval('('+message.data+')');
-	            	 
-	                 if('clear' in jsonObj) {//o
-	                	 receiveRemove();
-	                 }
-	                 else if('content' in jsonObj) {//o
-	                     var jsonLine = jsonObj.content;
-	                     receiveDraw(jsonLine);
-	                 }
-	                 else if('msg' in jsonObj){//o
-	                	 Console.log(jsonObj);
-	                 }
+				Chat.socket.onmessage = function (evt) {
+	            		   
+	                       console.log({msg:'수신 message.data:'+evt.data});
+	                       if(evt.data instanceof Blob){
+	                           console.log({msg:'수신 데이터 타입:Blob'});
+	                           saveData(evt.data, 'my-blob.txt');
+	                       }else if(evt.data instanceof ArrayBuffer){
+	                           console.log({msg:'수신 데이터 타입:ArrayBuffer'});
+	                           saveData2(evt.data, 'my-arrayBuffer.txt');
+	                       }else {
+	                    	   var jsonObj = eval('('+evt.data+')');
+	      	            	 
+	      	                 if('clear' in jsonObj) {//o
+	      	                	 receiveRemove();
+	      	                 }
+	      	                 else if('content' in jsonObj) {//o
+	      	                     var jsonLine = jsonObj.content;
+	      	                     receiveDraw(jsonLine);
+	      	                 }
+	      	                 else if('msg' in jsonObj){//o
+	      	                	 Console.log(jsonObj);
+	      	                 }
+	                       }
+
 	            };
 	        });
 	     	// connect() 함수 정의 끝
@@ -230,6 +241,7 @@ function receiveDraw(jsonLine) {
              
             // Blob 를 파일에 저장
             function saveData(blob, fileName) {
+
                 var a = document.createElement("a");
                 document.body.appendChild(a);
                 a.style = "display: none";

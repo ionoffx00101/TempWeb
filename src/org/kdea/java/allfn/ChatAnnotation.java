@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
+import javax.websocket.EncodeException;
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -33,6 +34,8 @@ public class ChatAnnotation {
 	
 	private static Map<String, Session> sessionMap = new HashMap<>();
 	private HttpSession httpSession;
+	
+	String receiver;
 
 	@OnOpen // 커넥션이 처음 열리면= 이용자가 처음접속하면 돌아간다 소켓이 열리면
 	public void start(Session session, EndpointConfig config) {
@@ -72,35 +75,11 @@ public class ChatAnnotation {
 	}
 
 	// 현재 세션과 연결된 클라이언트로부터 메시지가 도착할 때마다 새로운 쓰레드가 실행되어 incoming()을 호출함
+
 	@OnMessage
-	public void incoming(String message) {
-
-		if (message == null || message.trim().equals("")){
-			return;
-		}
-		
-		JSONParser jsonParser = new JSONParser();
-		try {
-			JSONObject jsonObj = (JSONObject) jsonParser.parse(message);
-			String sender = (String) jsonObj.get("sender");
-			String receiver = (String) jsonObj.get("receiver");
-	
-			try {
-				sessionMap.get(sender).getBasicRemote().sendText(message);
-				sessionMap.get(receiver).getBasicRemote().sendText(message);     
-				return;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-
-	}
-	/*// @OnMessage
 	    public void echoTextMessage(Session session, String msg, boolean last)
 	            throws IOException {
-	        System.out.println("텍스트 메시지 도착:"+msg);
+/*	        System.out.println("텍스트 메시지 도착:"+msg);
 	        if (writer == null) {
 	            writer = session.getBasicRemote().getSendWriter();
 	        }
@@ -110,25 +89,57 @@ public class ChatAnnotation {
 	            writer.close();
 	            writer = null;
 	        }
+	        
+	    	if (msg == null || msg.trim().equals("")){
+				return;
+			}*/
+			
+			JSONParser jsonParser = new JSONParser();
+			try {
+				JSONObject jsonObj = (JSONObject) jsonParser.parse(msg);
+				String sender = (String) jsonObj.get("sender");
+				receiver = (String) jsonObj.get("receiver");
+		
+				try {
+					//sessionMap.get(sender).getBasicRemote().sendText(msg);
+					sessionMap.get(receiver).getBasicRemote().sendText(msg);     
+					return;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+	        
+	        
 	    }
 	  
 	  
-	//    @OnMessage
+	@OnMessage
 	    public void echoBinaryMessage(byte[] msg, Session session, boolean last)
 	            throws IOException {
+		
 	        System.out.println("클라이언트-->서버 바이너리 데이터 도착");
 	        if (stream == null) {
 	            stream = session.getBasicRemote().getSendStream();
 	        }
-	  
-	        stream.write(msg);
+	        try {
+				sessionMap.get(receiver).getBasicRemote().sendObject(msg);
+			} catch (EncodeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}     
+	      /*  stream.write(msg);
 	        stream.flush();
 	        if (last) {
 	            stream.close();
 	            stream = null;
 	            System.out.println("서버-->클라이언트 바이너리 전송완료");
-	        }
-	    }*/
+	        }*/
+	        
+	        
+	        
+	 }
 	@OnError
 	public void onError(Throwable t) throws Throwable {
 		System.err.println("Chat Error: " + t.toString());
